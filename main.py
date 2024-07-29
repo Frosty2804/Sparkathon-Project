@@ -1,18 +1,20 @@
 import flet as ft
 
 
-# Define a landing page class ...
+# Defining Our Landing Page
 class Landing(ft.View):
     def __init__(self, page: ft.Page):
         super(Landing, self).__init__(
-            route="/", horizontal_alignment="center", vertical_alignment="center"
+            route="/",
+            horizontal_alignment="center",
+            vertical_alignment="center"
         )
 
         self.page = page
 
         self.cart_logo = ft.Icon(name="shopping_cart_outlined", size=64)
-        self.title = ft.Text("SIMPLE STORE".upper(), size=28, weight="bold")
-        self.subtitle = ft.Text("Made With Flet", size=11)
+        self.title = ft.Text("Sparkathon : Our Idea", size=28, weight="bold", color="#a0cafd")
+        self.subtitle = ft.Text("Made by Gabriel, Russell, Shuvayu and Sylvan", size=11, color="#ECEFF4")
 
         self.product_page_btn = ft.IconButton(
             "arrow_forward",
@@ -84,7 +86,7 @@ class Model(object):
                         Model.cart[value]["quantity"] += 1
 
 
-# Next, define the product page ...
+# Defining our Products Page
 class Product(ft.View):
     def __init__(self, page: ft.Page):
         super(Product, self).__init__(route="/products")
@@ -93,22 +95,24 @@ class Product(ft.View):
 
     # we break the UI compoenents into several functions for better code readability
 
-    # a method to initilize everythong
+    # a method to initilize everything
     def initilize(self):
-        # this is the main row where items apepar ,,,
+        # main row where items appear
         self.products = ft.Row(expand=True, scroll="auto", spacing=30)
         self.create_products()
 
         self.controls = [
             self.display_product_page_header(),
-            ft.Text("Shop", size=32),
-            ft.Text("Select items from the list below"),
+            ft.Text("Shop", size=32, color="#a0cafd"),
+            ft.Text("We hope you have a good time shopping with us.", size=12),
+            ft.Text(size=60),
+            ft.Text("Browse the Latest Electronics", size=28, color="#ECEFF4"),
             self.products,
             self.display_product_page_footer(),
         ]
 
     def display_product_page_footer(self):
-        return ft.Row([ft.Text("Simple X Shop", size=10)], alignment="center")
+        return ft.Row([ft.Text("Sparkathon X Shop", size=10, color="#a0cafd")], alignment="center")
 
     def display_product_page_header(self):
         return ft.Container(
@@ -159,7 +163,7 @@ class Product(ft.View):
 
         self.products.controls.append(self.create_item_wrapper(item))
 
-    # a final wraper method
+    # a final wrapper method
     def create_item_wrapper(self, item: ft.Column):
         return ft.Container(
             width=250, height=450, content=item, padding=8, border_radius=6
@@ -281,6 +285,13 @@ class Cart(ft.View):
 
 
 def main(page: ft.Page):
+    page.window.height = 800
+    page.window.width = 500
+    page.fonts = {
+        "Inter": "https://rsms.me/inter/inter.css",
+    }
+    page.theme = ft.Theme(font_family="Inter")
+
     def router(route):
         page.views.clear()
 
