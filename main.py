@@ -1,5 +1,7 @@
 import flet as ft
+import copy
 
+selected_product = {}
 
 # Defining Our Landing Page
 class Landing(ft.View):
@@ -9,7 +11,6 @@ class Landing(ft.View):
             horizontal_alignment="center",
             vertical_alignment="center"
         )
-
         self.page = page
 
         self.cart_logo = ft.Icon(name="shopping_cart_outlined", size=64)
@@ -85,6 +86,14 @@ class Model(object):
                     else:
                         Model.cart[value]["quantity"] += 1
 
+    @staticmethod
+    def return_product_details(data : str):                                      #New function similar to one above, to pass the correct product's details in dictionary {}
+        for _, values in Model.products.items():
+            for key, value in values.items():
+                if value == data:
+                    return values
+
+
 
 # Defining our Products Page
 class Product(ft.View):
@@ -128,7 +137,24 @@ class Product(ft.View):
                 alignment="spaceBetween",
             )
         )
+    def display_product_page(self, product_id, img_src):
 
+        product = self.products[product_id]
+        self.page.views.append(
+        ft.View(
+            f"/product_page/{product_id}",
+            controls=[
+            ft.Image(src=img_src, width=200, height=200),
+            ft.Text(product["name"], size=24, weight="bold"),
+            ft.Text(f"Price: {product['price']}"),
+            ft.Text(product["description"]),
+            ft.IconButton(
+            "arrow_back",
+            on_click=lambda _: self.page.go("/"),)
+            ]
+            )
+        )
+        self.page.update()
     # Define a method that creates the product UI items from the Model
     def create_products(self, products: dict = Model.get_products()):
         # loop over the data and extract the info based on keys
@@ -149,9 +175,9 @@ class Product(ft.View):
                 elif key == "price":
                     price = self.create_product_event(values["price"], idd)
 
-            texts = self.create_product_text(name, description)
+            product_button = self.create_product_button(name, idd, description)
 
-            self.create_full_item_view(img_src, texts, price)
+            self.create_full_item_view(img_src, product_button, price)
 
     # define a gather method that compiles everything
     def create_full_item_view(self, img_src, texts, price):
@@ -176,8 +202,14 @@ class Product(ft.View):
         )
 
     # define a method for the text UI (name + description)
-    def create_product_text(self, name: str, description: str):
-        return ft.Column([ft.Text(name, size=18), ft.Text(description, size=11)])
+    def create_product_button(self, name: str, idd : int, description: str):
+        product_button =  ft.ElevatedButton(
+            text = name,
+            data=idd,
+            on_click=self.view_product
+        )
+        return ft.Column([product_button, ft.Text(description, size=11)])
+        
 
     # define a method for prie and a add_to_cart button
     def create_product_event(self, price: str, idd: str):
@@ -202,6 +234,15 @@ class Product(ft.View):
     def add_to_cart(self, e: ft.TapEvent):
         Model.add_item_to_cart(data=e.control.data)
         print(Model.cart)
+    
+    def view_product(self, e: ft.TapEvent):
+        global selected_product                                                                    #Compulsary if you dont want to lose global dict contents as {}
+        selected_product = copy.deepcopy(Model.return_product_details(data=e.control.data))        #Deep Copy static fn's returned dictionary(temporary memory) onto global dict(permanant)
+        print(selected_product)
+        self.page.go('/product_page')
+
+    
+
 
 
 # Finally, we define our cart class
@@ -284,6 +325,61 @@ class Cart(ft.View):
         return ft.Text(price)
 
 
+
+class ProductPage(ft.View):
+    def __init__(self, page: ft.Page):
+        super(ProductPage, self).__init__(route="/product_page")
+        self.page = page
+        page.add()
+        self.initilize()
+
+    def create_productpage_buttons(self, name: str, idd: int, description : str):
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.IconButton(
+                    "arrow_back",
+                    on_click=lambda _: self.page.go("/products"),),
+
+                    ft.ElevatedButton(
+                        text = name,
+                        data = idd,
+                        on_click=lambda _: self.page.go("/products"),)
+                ],
+                alignment="spaceBetween",
+            )
+        )
+  
+    
+    def initilize(self):
+
+        self.products = ft.Row(expand=True, scroll="auto", spacing=30)
+        print("hi its me")
+        print(selected_product)
+        self.controls = [
+
+            self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
+
+            ft.Text(selected_product["name"], size=24, weight="bold"),
+            ft.Divider(height=25, color="transparent"),
+            ft.Text("Price: " + selected_product['price']),
+            ft.Divider(height=25, color="transparent"),
+            ft.Text(selected_product["description"]),
+            ft.Divider(height=25, color="transparent"),
+            ft.Image(src=selected_product['img_src'], width=200, height=200)
+        ]
+        self.page.update()
+
+    # similiar to the products page, we break down the UI cart into functions
+
+    # a method to initilize
+
+
+
+
+
+
+
 def main(page: ft.Page):
     page.window.height = 800
     page.window.width = 500
@@ -306,6 +402,9 @@ def main(page: ft.Page):
         if page.route == "/cart":
             cart = Cart(page)
             page.views.append(cart)
+        if page.route == "/product_page":
+            product_page = ProductPage(page)
+            page.views.append(product_page)
 
         page.update()
 
