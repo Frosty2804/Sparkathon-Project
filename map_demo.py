@@ -5,6 +5,11 @@ from map import map_grid
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement
+import os
+import json
+import settings
+
+item_pos = []
 
 class Pathfinder:
 	def __init__(self, map_grid):
@@ -19,6 +24,13 @@ class Pathfinder:
 
 		# Blip
 		self.blip = pygame.sprite.GroupSingle(Blip(self.empty_path))
+
+	def read_file():
+		if os.path.exists("shared.json"):
+			with open("shared.json", "r") as file:
+				global item_pos
+				item_pos = json.load(file)
+		return []
 
 	def empty_path(self):
 		self.path = []
@@ -39,7 +51,10 @@ class Pathfinder:
 
 		# end
 		mouse_pos = pygame.mouse.get_pos()
-		end_x,end_y =  mouse_pos[0] // tile_size, mouse_pos[1] // tile_size
+
+		#end_x,end_y =  mouse_pos[0] // tile_size, mouse_pos[1] // tile_size
+		print(settings.position)
+		end_x,end_y = settings.position[0], settings.position[1]
 		end = self.grid.node(end_x,end_y)
 
 		# create path

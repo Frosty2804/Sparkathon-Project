@@ -1,7 +1,12 @@
 import flet as ft
 import copy
+import subprocess
+import json
+from time import sleepexi
+import asyncio
 
 selected_product = {}
+pb = ft.ProgressBar(width=400, visible=False)
 
 # Defining Our Landing Page
 class Landing(ft.View):
@@ -44,24 +49,28 @@ class Model(object):
     products: dict = {
         0: {
             "id": "111",
-            "img_src": "/assets/phone1.jpg",
+            "img_src": "assets/phone1.png",
             "name": "Product 1",
             "description": "Experience the excellence of Product 1, a cutting-edge creation designed to elevate your daily routine. Crafted with precision and innovation, this product offers unmatched quality and performance. Enhance your lifestyle with Product 1 today.",
             "price": "$21.55",
+            "pos":[5,5]
         },
         1: {
             "id": "222",
-            "img_src": "/assets/phone2.jpg",
+            "img_src": "assets/phone2.png",
             "name": "Product 2",
             "description": "Immerse yourself in the sophistication of Product 2. Uniquely crafted to meet your needs, this product combines style and functionality seamlessly. Elevate your daily experiences with the exceptional features of Product 2.",
             "price": "$32.99",
+            "pos":[10,10]
+
         },
         2: {
             "id": "333",
-            "img_src": "/assets/phone3.jpg",
+            "img_src": "assets/phone3.png",
             "name": "Product 3",
             "description": "Discover the versatility of Product 3, a dynamic solution designed for modern living. Whether it's convenience, durability, or style you seek, Product 3 delivers on all fronts. Make a statement with this exceptional product",
             "price": "$45.75",
+            "pos":[15,12]
         },
     }
 
@@ -209,7 +218,7 @@ class Product(ft.View):
             on_click=self.view_product
         )
         return ft.Column([product_button, ft.Text(description, size=11)])
-        
+
 
     # define a method for prie and a add_to_cart button
     def create_product_event(self, price: str, idd: str):
@@ -234,15 +243,12 @@ class Product(ft.View):
     def add_to_cart(self, e: ft.TapEvent):
         Model.add_item_to_cart(data=e.control.data)
         print(Model.cart)
-    
+
     def view_product(self, e: ft.TapEvent):
         global selected_product                                                                    #Compulsary if you dont want to lose global dict contents as {}
         selected_product = copy.deepcopy(Model.return_product_details(data=e.control.data))        #Deep Copy static fn's returned dictionary(temporary memory) onto global dict(permanant)
         print(selected_product)
         self.page.go('/product_page')
-
-    
-
 
 
 # Finally, we define our cart class
@@ -330,8 +336,47 @@ class ProductPage(ft.View):
     def __init__(self, page: ft.Page):
         super(ProductPage, self).__init__(route="/product_page")
         self.page = page
+        self.page.bgcolor = "pink600"
         page.add()
         self.initilize()
+
+
+    def display_map(self, e: ft.TapEvent):
+        # self.page.views.clear()
+        s_file = open("settings.py","w")
+        s_file.write(f'''position = {selected_product["pos"]} ''')
+        s_file.close()
+
+        old_controls = []
+        for widget in self.controls:
+            old_controls.append(widget)
+        self.controls.clear()
+        pr = ft.ProgressRing(width = 50, height = 50, stroke_width = 2, visible = True)
+        text = ft.Text("Buckle your seatbelts...", size = 20)
+        self.loading_icon.controls.append(pr)
+        self.loading_icon.controls.append(text)
+        row = ft.Row(
+            [
+                self.loading_icon
+            ],
+            expand = True,
+            alignment = ft.MainAxisAlignment.CENTER,
+            vertical_alignment = ft.CrossAxisAlignment.CENTER
+        )
+
+        self.controls.append(row)
+
+        for i in range(0, 101):
+            pr.value = i * 0.01
+            sleep(0.1)
+            self.page.update()
+
+        subprocess.Popen(["python", "map_demo.py"])
+        self.controls.clear()
+        for widget in old_controls:
+            self.controls.append(widget)
+        self.page.update()
+
 
     def create_productpage_buttons(self, name: str, idd: int, description : str):
         return ft.Container(
@@ -344,20 +389,19 @@ class ProductPage(ft.View):
                     ft.ElevatedButton(
                         text = name,
                         data = idd,
-                        on_click=lambda _: self.page.go("/products"),)
+                        on_click= self.display_map)
                 ],
                 alignment="spaceBetween",
             )
         )
-  
-    
-    def initilize(self):
 
+    def initilize(self):
         self.products = ft.Row(expand=True, scroll="auto", spacing=30)
-        print("hi its me")
-        print(selected_product)
+        self.loading_icon = ft.Column(alignment = ft.MainAxisAlignment.CENTER, horizontal_alignment = ft.CrossAxisAlignment.CENTER)
+
         self.controls = [
 
+            # row,
             self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
 
             ft.Text(selected_product["name"], size=24, weight="bold"),
@@ -366,23 +410,16 @@ class ProductPage(ft.View):
             ft.Divider(height=25, color="transparent"),
             ft.Text(selected_product["description"]),
             ft.Divider(height=25, color="transparent"),
-            ft.Image(src=selected_product['img_src'], width=200, height=200)
+            ft.Image(src=selected_product['img_src'], width=200, height=200),
         ]
+
         self.page.update()
-
-    # similiar to the products page, we break down the UI cart into functions
-
-    # a method to initilize
-
-
-
-
-
 
 
 def main(page: ft.Page):
     page.window.height = 800
     page.window.width = 500
+    page.bgcolor = "pink600"
     page.fonts = {
         "Inter": "https://rsms.me/inter/inter.css",
     }
