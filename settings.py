@@ -1,1 +1,1 @@
-position = [5, 5] 
+position = [768, 288] 

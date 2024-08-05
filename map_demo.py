@@ -1,15 +1,10 @@
 import pygame, sys
-
+import settings
 from pygame.rect import Rect
 from map import map_grid
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement
-import os
-import json
-import settings
-
-item_pos = []
 
 class Pathfinder:
 	def __init__(self, map_grid):
@@ -25,20 +20,12 @@ class Pathfinder:
 		# Blip
 		self.blip = pygame.sprite.GroupSingle(Blip(self.empty_path))
 
-	def read_file():
-		if os.path.exists("shared.json"):
-			with open("shared.json", "r") as file:
-				global item_pos
-				item_pos = json.load(file)
-		return []
-
 	def empty_path(self):
 		self.path = []
 
-	def draw_active_cell(self):
-		mouse_pos = pygame.mouse.get_pos()
-		row =  mouse_pos[1] // tile_size
-		col =  mouse_pos[0] // tile_size
+	def draw_target(self):
+		row =  settings.position[1] // tile_size
+		col =  settings.position[0] // tile_size
 		current_cell_value = self.map_grid[row][col]
 		if current_cell_value == 1:
 			rect = pygame.Rect((col * tile_size, row * tile_size), (tile_size, tile_size))
@@ -50,15 +37,12 @@ class Pathfinder:
 		start = self.grid.node(start_x,start_y)
 
 		# end
-		mouse_pos = pygame.mouse.get_pos()
-
-		#end_x,end_y =  mouse_pos[0] // tile_size, mouse_pos[1] // tile_size
-		print(settings.position)
-		end_x,end_y = settings.position[0], settings.position[1]
+		end_x,end_y = settings.position[0] // tile_size, settings.position[1] // tile_size
 		end = self.grid.node(end_x,end_y)
 
 		# create path
 		finder = AStarFinder(diagonal_movement = DiagonalMovement.always)
+		# '_' stores the no of runs, not necessary for this demo
 		self.path, _ = finder.find_path(start, end, self.grid)
 		self.grid.cleanup()
 		self.blip.sprite.set_path(self.path)
@@ -75,7 +59,7 @@ class Pathfinder:
 			pygame.draw.lines(screen, '#4a4a4a', False, points, 5)
 
 	def update(self):
-		self.draw_active_cell()
+		self.draw_target()
 		self.draw_path()
 
 		# blip updating and drawing
@@ -88,7 +72,6 @@ class Blip(pygame.sprite.Sprite):
 		# basic
 		super().__init__()
 		self.image = pygame.image.load('assets/map/blip.png').convert_alpha()
-		# self.rect = self.image.get_rect(center = (60,60))
 		self.rect = Rect(60,60, tile_size, tile_size)
 
 		# movement
@@ -126,8 +109,11 @@ class Blip(pygame.sprite.Sprite):
 			end = pygame.math.Vector2(self.collision_rects[0].center)
 			self.direction = (end - start).normalize()
 		else:
+		    # if destination reached, quit the game
 			self.direction = pygame.math.Vector2(0,0)
 			self.path = []
+			pygame.quit()
+			sys.exit()
 
 	def check_collisions(self):
 		if self.collision_rects:
@@ -159,7 +145,7 @@ while True:
 		if event.type == pygame.QUIT:
 			pygame.quit()
 			sys.exit()
-		if event.type == pygame.MOUSEBUTTONDOWN:  # create path only on mouse click
+		else:
 			pathfinder.create_path()
 
 	screen.blit(bg_surf,(0,0))
