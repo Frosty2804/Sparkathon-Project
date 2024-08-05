@@ -5,6 +5,16 @@ from map import map_grid
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 from pathfinding.core.diagonal_movement import DiagonalMovement
+import phonenumbers
+from phonenumbers import number, geocoder
+import opencage
+from opencage.geocoder import OpenCageGeocode
+
+# pip install phonenumbers
+# pip install opencage
+phoneno = 919321145332
+pepnumber = phonenumbers.parse(phoneno)
+location = geocoder.description_for_number(pepnumber,"en")
 
 class Pathfinder:
 	def __init__(self, map_grid):
@@ -76,7 +86,11 @@ class Blip(pygame.sprite.Sprite):
 
 		# movement
 		self.pos = self.rect.center
-		self.speed = 3
+
+		self.speed =  pygame.math.Vector2(3,3)#[3,3]
+		self.speed.x = 3
+		self.speed.y = 3
+
 		self.direction = pygame.math.Vector2(0,0)
 
 		# path
@@ -125,7 +139,42 @@ class Blip(pygame.sprite.Sprite):
 			self.empty_path()
 
 	def update(self):
-		self.pos += self.direction * self.speed
+		
+		# if keys[pygame.K_LEFT]:
+		# 	self.pos -= pygame.math.Vector2(self.speed,0)
+		# if keys[pygame.K_RIGHT]:
+		# 	self.pos += pygame.math.Vector2(self.speed,0)
+		# if keys[pygame.K_UP]:
+		# 	self.pos -= pygame.math.Vector2(0,self.speed)
+		# if keys[pygame.K_DOWN]:
+		# 	self.pos += pygame.math.Vector2(0,self.speed)
+
+		# if self.pos[0]+self.pos[1] > self.speed:
+		# 	self.pos = self.pos.normalize()
+
+		keys = pygame.key.get_pressed()
+		if keys[pygame.K_LEFT]:
+			self.speed.x = -3
+		elif keys[pygame.K_RIGHT]:
+			self.speed.x = +3
+		else:
+			self.speed.x = 0
+			
+		if keys[pygame.K_UP]:
+			self.speed.y = -3
+		elif keys[pygame.K_DOWN]:
+			self.speed.y = +3
+		else:
+			self.speed.y = 0
+		
+		if abs(self.speed.x) + abs(self.speed.y) > 3:
+			self.speed = self.speed.normalize() * 3
+		
+		self.pos += pygame.math.Vector2(self.speed.x,self.speed.y)
+
+
+
+		# self.pos += self.direction * self.speed
 		self.check_collisions()
 		self.rect.center = self.pos   # workaround to not lose data when converting to int
 
