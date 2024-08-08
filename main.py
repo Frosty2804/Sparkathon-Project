@@ -3,6 +3,12 @@ import copy
 import subprocess
 import colors
 from time import sleep
+import os
+import shutil
+import requests
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 # Defining Our Landing Page
 class Landing(ft.View):
@@ -164,6 +170,10 @@ class Product(ft.View):
                         icon_size=18,
                         icon_color=colors.icon_color
                     ),
+                    ft.ElevatedButton(
+                        "Customer Support",
+                        on_click=lambda e: self.page.go("/customer_support"),
+                    ),
                 ],
                 alignment="spaceBetween",
             )
@@ -280,6 +290,97 @@ class Product(ft.View):
         global selected_product                                                                    #Compulsary if you dont want to lose global dict contents as {}
         selected_product = copy.deepcopy(Model.return_product_details(data=e.control.data))        #Deep Copy static fn's returned dictionary(temporary memory) onto global dict(permanant)
         self.page.go('/product_page')
+
+# Customer Support
+class CS_Chat(ft.View):
+    def __init__(self, page: ft.Page):
+        super(CS_Chat, self).__init__(route="/cs_chat", bgcolor= colors.default_color)
+        self.page = page
+        self.initialize()
+
+    def initialize(self):
+        self.controls = [
+            ft.Row(
+                [
+                    ft.IconButton(
+                        "arrow_back_ios_new_outlined",
+                        on_click=lambda e: self.page.go("/customer_support"),
+                        icon_size=16,
+                    ),
+                ],
+                alignment="spaceBetween",
+            ),
+            ft.Text("Contact Us", size=32),
+            ft.Text("Feel free to reach out to us with any inquiries or support requests."),
+            # Add more controls or content as needed
+        ]  
+
+class Call_CS(ft.View):
+    def __init__(self, page: ft.Page):
+        super(Call_CS, self).__init__(route="/call_cs", bgcolor= colors.default_color)
+        self.page = page
+        self.initialize()
+
+    def initialize(self):
+        self.controls = [
+            ft.Row(
+                [
+                    ft.IconButton(
+                        "arrow_back_ios_new_outlined",
+                        on_click=lambda e: self.page.go("/customer_support"),
+                        icon_size=16,
+                    ),
+                ],
+                alignment="spaceBetween",
+            ),
+            ft.Text("Contact Us", size=32),
+            ft.Text("Feel free to reach out to us with any inquiries or support requests."),
+            # Add more controls or content as needed
+        ]
+
+
+
+class Send_Video(ft.View):
+    def __init__(self, page: ft.Page):
+        super(Send_Video, self).__init__(route="/send_video", bgcolor= colors.default_color)
+        self.page = page
+        self.initialize()
+    
+    
+
+    def initialize(self):
+        
+        def saveupload(e:ft.FilePickerResultEvent):
+            for x in e.files:
+                #print(x.path)
+                #print(x.name)
+                your_copy = os.path.join(os.getcwd(), "uploads")
+                shutil.copy(x.path, your_copy)
+            pass
+        
+        
+        file_picker = ft.FilePicker(
+            on_result=saveupload
+        )   
+        self.page.overlay.append(file_picker)
+        
+        self.controls = [
+            ft.Row(
+                [
+                    ft.IconButton(
+                        "arrow_back_ios_new_outlined",
+                        on_click=lambda e: self.page.go("/customer_support"),
+                        icon_size=16,
+                    ),
+                ],
+                alignment="spaceBetween",
+            ),
+            ft.Text("Send a Video", size=32),
+            ft.Text("Send a Video of your Problem: "),
+            ft.ElevatedButton("Send Video", on_click=lambda e:file_picker.pick_files())
+            # Add more controls or content as needed
+        ]
+
 
 
 # Finally, we define our cart class
@@ -445,6 +546,43 @@ class ProductPage(ft.View):
             self.page.update()
 
 
+class CustomerSupport(ft.View):
+    def __init__(self, page: ft.Page):
+        super(CustomerSupport, self).__init__(route="/customer_support", bgcolor= colors.default_color)
+        self.page = page
+        self.initialize()
+
+    def initialize(self):
+        self.controls = [
+            ft.Row(
+                [
+                    ft.IconButton(
+                        "arrow_back_ios_new_outlined",
+                        on_click=lambda e: self.page.go("/products"),
+                        icon_size=16,
+                    ),
+                ],
+                alignment="spaceBetween",
+            ),
+            ft.Text("Customer Support", size=32),
+            ft.Text("Welcome to our customer support page. How can we assist you today?"),
+            ft.ElevatedButton(
+                text="Call Us",
+                on_click=lambda e: self.page.go("/call_cs"),
+            ),
+            ft.ElevatedButton(
+                text="Chat with Customer Support",
+                on_click=lambda e: self.page.go("/cs_chat"),
+            ),
+            ft.ElevatedButton(
+                text="Send a video",
+                on_click=lambda e: self.page.go("/send_video"),
+            ),
+            # Add more controls as needed
+        ]
+
+
+
 def main(page: ft.Page):
     page.window.height = 800
     page.window.width = 500
@@ -471,6 +609,22 @@ def main(page: ft.Page):
         elif page.route == "/product_page":
             product_page = ProductPage(page)
             page.views.append(product_page)
+            
+        elif page.route == "/customer_support":
+            customer_support = CustomerSupport(page)
+            page.views.append(customer_support)
+        
+        elif page.route == "/call_cs":
+            call_cs = Call_CS(page)
+            page.views.append(call_cs)
+           
+        elif page.route == "/cs_chat":
+            cs_chat = CS_Chat(page)
+            page.views.append(cs_chat)
+        
+        elif page.route == "/send_video":
+            send_video = Send_Video(page)
+            page.views.append(send_video)
 
         page.update()
 
