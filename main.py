@@ -350,12 +350,30 @@ class Send_Video(ft.View):
 
     def initialize(self):
         
-        def saveupload(e:ft.FilePickerResultEvent):
-            for x in e.files:
-                #print(x.path)
-                #print(x.name)
+        def saveupload(e: ft.FilePickerResultEvent):
+            
+            def handle_close_no(e):
+                self.page.close(dlg_modal)
+                
+            def handle_close_yes(e):
+                self.page.close(dlg_modal)
                 your_copy = os.path.join(os.getcwd(), "uploads")
                 shutil.copy(x.path, your_copy)
+            
+            for x in e.files:
+                dlg_modal = ft.AlertDialog(
+                modal=True,
+                title=ft.Text("Please confirm"),
+                content=ft.Text(f"Do you really want to send file: {x.name}"),
+                actions=[
+                    ft.TextButton("Yes", on_click=handle_close_yes),
+                    ft.TextButton("No", on_click=handle_close_no),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+                on_dismiss=lambda e: self.page.add(),
+                )
+                self.page.open(dlg_modal)
+                
             pass
         
         
