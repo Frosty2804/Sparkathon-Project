@@ -174,10 +174,6 @@ class Product(ft.View):
                         icon_size=18,
                         icon_color=colors.icon_color
                     ),
-                    ft.ElevatedButton(
-                        "Customer Support",
-                        on_click=lambda e: self.page.go("/customer_support"),
-                    ),
                 ],
                 alignment="spaceBetween",
             )
@@ -318,7 +314,7 @@ class CS_Chat(ft.View):
             ft.Text("Contact Us", size=32),
             ft.Text("Feel free to reach out to us with any inquiries or support requests."),
             # Add more controls or content as needed
-        ]  
+        ]
 
 class Call_CS(ft.View):
     def __init__(self, page: ft.Page):
@@ -350,21 +346,21 @@ class Send_Video(ft.View):
         super(Send_Video, self).__init__(route="/send_video", bgcolor= colors.default_color)
         self.page = page
         self.initialize()
-    
-    
+
+
 
     def initialize(self):
-        
+
         def saveupload(e: ft.FilePickerResultEvent):
-            
+
             def handle_close_no(e):
                 self.page.close(dlg_modal)
-                
+
             def handle_close_yes(e):
                 self.page.close(dlg_modal)
                 your_copy = os.path.join(os.getcwd(), "uploads")
                 shutil.copy(x.path, your_copy)
-            
+
             for x in e.files:
                 dlg_modal = ft.AlertDialog(
                 modal=True,
@@ -378,15 +374,15 @@ class Send_Video(ft.View):
                 on_dismiss=lambda e: self.page.add(),
                 )
                 self.page.open(dlg_modal)
-                
+
             pass
-        
-        
+
+
         file_picker = ft.FilePicker(
             on_result=saveupload
-        )   
+        )
         self.page.overlay.append(file_picker)
-        
+
         self.controls = [
             ft.Row(
                 [
@@ -475,7 +471,7 @@ class Cart(ft.View):
         )
 
     def create_item_image(self, img_path):
-        return ft.Container(width=32, height=32, image_src=img_path, bgcolor=colors.default_color)
+        return ft.Container(width=96, height=96, image_src=img_path, bgcolor=colors.panel_color, border_radius=6)
 
     def create_item_quantity(self, quantity: int):
         return ft.Text(f"{quantity} X", color=colors.text_color)
@@ -501,16 +497,36 @@ class ProductPage(ft.View):
         text1 = ft.Text(selected_product["name"], size=24, weight="bold", color=colors.text_color)
         text2 = ft.Text("Price: " + selected_product['price'], color=colors.text_color, weight=ft.FontWeight.BOLD)
         product_img = ft.Image(src=selected_product['img_src'], width=200, height=200)
+        product_display = ft.Container(content = product_img, alignment = ft.alignment.center, height=250, bgcolor=colors.panel_color, border_radius=8)
 
         self.controls = [
             self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
             # ft.Divider(height=25, color="transparent"),
-            ft.Container(content = product_img, alignment = ft.alignment.center, height=250),
+            # ft.Container(content = product_img, alignment = ft.alignment.center, height=250),
+            product_display,
+            ft.Divider(height=20, color="transparent"),
             ft.Row(controls = [text1, text2], alignment="spaceBetween"),
             ft.Divider(height=25, color="transparent"),
             ft.Text(selected_product["description"], color=colors.text_color),
             ft.Divider(height=25, color="transparent"),
+            self.create_location_button("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
+            ft.Divider(height=5, color="transparent"),
+            ft.ElevatedButton(
+                "Customer Support",
+                on_click=lambda e: self.page.go("/customer_support"),
+                bgcolor=colors.panel_color,
+                color=colors.text_color,
+            ),
         ]
+
+    def create_location_button(self, name: str, idd: int, description : str):
+        return ft.ElevatedButton(
+            text = name,
+            data = idd,
+            bgcolor=colors.panel_color,
+            color=colors.text_color,
+            on_click= self.display_map
+        )
 
     def create_productpage_buttons(self, name: str, idd: int, description : str):
         return ft.Container(
@@ -520,15 +536,15 @@ class ProductPage(ft.View):
                     "arrow_back_ios_new_outlined",
                     icon_color = colors.icon_color,
                     on_click=lambda _: self.page.go("/products"),),
-
-                    ft.ElevatedButton(
-                        text = name,
-                        data = idd,
-                        bgcolor=colors.panel_color,
-                        color=colors.text_color,
-                        on_click= self.display_map)
                 ],
-                alignment="spaceBetween",
+                #     ft.ElevatedButton(
+                #         text = name,
+                #         data = idd,
+                #         bgcolor=colors.panel_color,
+                #         color=colors.text_color,
+                #         on_click= self.display_map)
+                # ],
+                alignment="start",
             )
         )
 
@@ -589,19 +605,25 @@ class CustomerSupport(ft.View):
                 ],
                 alignment="spaceBetween",
             ),
-            ft.Text("Customer Support", size=32),
-            ft.Text("Welcome to our customer support page. How can we assist you today?"),
+            ft.Text("Customer Support", size=32, color = colors.text_color),
+            ft.Text("Welcome to our customer support page. How can we assist you today?", color = colors.text_color),
             ft.ElevatedButton(
                 text="Call Us",
                 on_click=lambda e: self.page.go("/call_cs"),
+                bgcolor=colors.panel_color,
+                color=colors.text_color,
             ),
             ft.ElevatedButton(
                 text="Chat with Customer Support",
                 on_click=lambda e: self.page.go("/cs_chat"),
+                bgcolor=colors.panel_color,
+                color=colors.text_color,
             ),
             ft.ElevatedButton(
                 text="Send video",
                 on_click=lambda e: self.page.go("/send_video"),
+                bgcolor=colors.panel_color,
+                color=colors.text_color,
             ),
             # Add more controls as needed
         ]
@@ -634,19 +656,19 @@ def main(page: ft.Page):
         elif page.route == "/product_page":
             product_page = ProductPage(page)
             page.views.append(product_page)
-            
+
         elif page.route == "/customer_support":
             customer_support = CustomerSupport(page)
             page.views.append(customer_support)
-        
+
         elif page.route == "/call_cs":
             call_cs = Call_CS(page)
             page.views.append(call_cs)
-           
+
         elif page.route == "/cs_chat":
             cs_chat = CS_Chat(page)
             page.views.append(cs_chat)
-        
+
         elif page.route == "/send_video":
             send_video = Send_Video(page)
             page.views.append(send_video)
