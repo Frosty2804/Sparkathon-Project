@@ -593,7 +593,7 @@ class CustomerSupport(ft.View):
                 on_click=lambda e: self.page.go("/cs_chat"),
             ),
             ft.ElevatedButton(
-                text="Send a video",
+                text="Send video",
                 on_click=lambda e: self.page.go("/send_video"),
             ),
             # Add more controls as needed
