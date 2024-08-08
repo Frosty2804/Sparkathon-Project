@@ -1,6 +1,10 @@
+from dash.html.Center import Center
 import flet as ft
 import copy
 import subprocess
+
+from flet_core.container import Container
+from flet_core.video import Alignment
 import colors
 from time import sleep
 import os
@@ -69,7 +73,7 @@ class Model(object):
             "img_src": "assets/xbox.png",
             "name": "Fridge",
             "description": "Experience the excellence of Product 1, a cutting-edge creation designed to elevate your daily routine. Crafted with precision and innovation, this product offers unmatched quality and performance. Enhance your lifestyle with Product 1 today.",
-            "price": SYMBOLS["USD"] + str(25.99 * CONVERSION_RATES["USD"]),
+            "price": "$25.99",
             "usd_price": "$25.99",
             "pos":[1120,704]
         },
@@ -78,7 +82,7 @@ class Model(object):
             "img_src": "assets/mac.png",
             "name": "Overpriced Laptop",
             "description": "Immerse yourself in the sophistication of Product 2. Uniquely crafted to meet your needs, this product combines style and functionality seamlessly. Elevate your daily experiences with the exceptional features of Product 2.",
-            "price": SYMBOLS["USD"] + str(45.99 * CONVERSION_RATES["USD"]),
+            "price": "$45.99",
             "usd_price": "$45.99",
             "pos":[768,288]
         },
@@ -87,7 +91,7 @@ class Model(object):
             "img_src": "assets/phone.png",
             "name": "Phone",
             "description": "Discover the versatility of Product 3, a dynamic solution designed for modern living. Whether it's convenience, durability, or style you seek, Product 3 delivers on all fronts. Make a statement with this exceptional product",
-            "price": SYMBOLS["USD"] + str(65.99 * CONVERSION_RATES["USD"]),
+            "price": "$65.99",
             "usd_price": "$65.99",
             "pos":[1152,96]
         },
@@ -142,14 +146,14 @@ class Product(ft.View):
     # a method to initilize everythong
     def initilize(self):
         # this is the main row where items apepar ,,,
-        self.products = ft.Row(expand=True, scroll="auto", spacing=30)
+        self.products = ft.ListView(expand=True, auto_scroll=False, horizontal = True, spacing=30, padding=20, first_item_prototype=True)
         self.create_products()
 
         self.controls = [
             self.display_product_page_header(),
             ft.Text("Shop", size=32, color=colors.text_color, weight=ft.FontWeight.BOLD),
             ft.Text("We hope you have a good time shopping with us.", size=12, color=colors.text_color),
-            ft.Divider(height=70, color="transparent"),
+            ft.Divider(height=40, color="transparent"),
             ft.Text("Browse the Latest Electronics", size=28, color=colors.text_color),
             self.products,
             self.display_product_page_footer(),
@@ -199,6 +203,7 @@ class Product(ft.View):
         return self.dd
 
     def on_dropdown_changed(self, e):
+        # first update the prices based on the currency chosen, then remove the product cards and recreate them with the new dictionary values
         Model.update_prices(self.dd.value)
         self.products.controls.clear()
         self.create_products()
@@ -259,7 +264,7 @@ class Product(ft.View):
             bgcolor=colors.default_color,
             color=colors.text_color
         )
-        return ft.Column([product_button, ft.Text(description, size=11)])
+        return ft.Column([product_button, ft.Text(description, size=11, color = colors.text_color)])
 
 
     # define a method for price and a add_to_cart button
@@ -493,16 +498,18 @@ class ProductPage(ft.View):
 
     def initilize(self):
         self.loading_icon = ft.Column(alignment = ft.MainAxisAlignment.CENTER, horizontal_alignment = ft.CrossAxisAlignment.CENTER)
+        text1 = ft.Text(selected_product["name"], size=24, weight="bold", color=colors.text_color)
+        text2 = ft.Text("Price: " + selected_product['price'], color=colors.text_color, weight=ft.FontWeight.BOLD)
+        product_img = ft.Image(src=selected_product['img_src'], width=200, height=200)
 
         self.controls = [
             self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
-            ft.Text(selected_product["name"], size=24, weight="bold", color=colors.text_color),
-            ft.Divider(height=25, color="transparent"),
-            ft.Text("Price: " + selected_product['price'], color=colors.text_color),
+            # ft.Divider(height=25, color="transparent"),
+            ft.Container(content = product_img, alignment = ft.alignment.center, height=250),
+            ft.Row(controls = [text1, text2], alignment="spaceBetween"),
             ft.Divider(height=25, color="transparent"),
             ft.Text(selected_product["description"], color=colors.text_color),
             ft.Divider(height=25, color="transparent"),
-            ft.Image(src=selected_product['img_src'], width=200, height=200),
         ]
 
     def create_productpage_buttons(self, name: str, idd: int, description : str):
@@ -603,7 +610,7 @@ class CustomerSupport(ft.View):
 
 def main(page: ft.Page):
     page.window.height = 800
-    page.window.width = 500
+    page.window.width = 565
     page.fonts = {
         "Inter": "https://rsms.me/inter/inter.css",
     }
