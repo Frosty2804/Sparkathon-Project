@@ -1,12 +1,8 @@
 import flet as ft
 import copy
 import subprocess
-import json
-from time import sleepexi
-import asyncio
-
-selected_product = {}
-pb = ft.ProgressBar(width=400, visible=False)
+import colors
+from time import sleep
 
 # Defining Our Landing Page
 class Landing(ft.View):
@@ -14,22 +10,24 @@ class Landing(ft.View):
         super(Landing, self).__init__(
             route="/",
             horizontal_alignment="center",
-            vertical_alignment="center"
+            vertical_alignment="center",
+            bgcolor=colors.default_color
         )
         self.page = page
 
-        self.cart_logo = ft.Icon(name="shopping_cart_outlined", size=64)
-        self.title = ft.Text("Sparkathon : Our Idea", size=28, weight="bold", color="#a0cafd")
-        self.subtitle = ft.Text("Made by Gabriel, Russell, Shuvayu and Sylvan", size=11, color="#ECEFF4")
+        self.cart_logo = ft.Icon(name="shopping_cart_outlined", size=64, color=colors.icon_color)
+        self.title = ft.Text("Sparkathon : Our Idea", size=28, weight=ft.FontWeight.BOLD, color=colors.text_color)
+        self.subtitle = ft.Text("Made by Gabriel, Russell, Shuvayu and Sylvan", size=11, color=colors.text_color)
 
         self.product_page_btn = ft.IconButton(
             "arrow_forward",
+            icon_color=colors.icon_color,
             width=54,
             height=54,
             style=ft.ButtonStyle(
-                bgcolor={"": "#202020"},
+                bgcolor={"": colors.panel_color},
                 shape={"": ft.RoundedRectangleBorder(radius=8)},
-                side={"": ft.BorderSide(2, "white54")},
+                side={"": ft.BorderSide(2, colors.icon_color)},
             ),
             on_click=lambda e: self.page.go("/products"),
         )
@@ -46,31 +44,46 @@ class Landing(ft.View):
 
 # Define your model class => class that stores your data
 class Model(object):
+    CONVERSION_RATES = {
+        "USD": 1.0,
+        "EUR": 0.85,
+        "INR": 82.50
+    }
+    SYMBOLS = {
+        "USD": "$",
+        "EUR": "€",
+        "INR": "₹"
+    }
+
+    currency = "USD"
+
     products: dict = {
         0: {
             "id": "111",
-            "img_src": "assets/phone1.png",
-            "name": "Product 1",
+            "img_src": "assets/xbox.png",
+            "name": "Fridge",
             "description": "Experience the excellence of Product 1, a cutting-edge creation designed to elevate your daily routine. Crafted with precision and innovation, this product offers unmatched quality and performance. Enhance your lifestyle with Product 1 today.",
-            "price": "$21.55",
-            "pos":[5,5]
+            "price": SYMBOLS["USD"] + str(25.99 * CONVERSION_RATES["USD"]),
+            "usd_price": "$25.99",
+            "pos":[1120,704]
         },
         1: {
             "id": "222",
-            "img_src": "assets/phone2.png",
-            "name": "Product 2",
+            "img_src": "assets/mac.png",
+            "name": "Overpriced Laptop",
             "description": "Immerse yourself in the sophistication of Product 2. Uniquely crafted to meet your needs, this product combines style and functionality seamlessly. Elevate your daily experiences with the exceptional features of Product 2.",
-            "price": "$32.99",
-            "pos":[10,10]
-
+            "price": SYMBOLS["USD"] + str(45.99 * CONVERSION_RATES["USD"]),
+            "usd_price": "$45.99",
+            "pos":[768,288]
         },
         2: {
             "id": "333",
-            "img_src": "assets/phone3.png",
-            "name": "Product 3",
+            "img_src": "assets/phone.png",
+            "name": "Phone",
             "description": "Discover the versatility of Product 3, a dynamic solution designed for modern living. Whether it's convenience, durability, or style you seek, Product 3 delivers on all fronts. Make a statement with this exceptional product",
-            "price": "$45.75",
-            "pos":[15,12]
+            "price": SYMBOLS["USD"] + str(65.99 * CONVERSION_RATES["USD"]),
+            "usd_price": "$65.99",
+            "pos":[1152,96]
         },
     }
 
@@ -83,6 +96,14 @@ class Model(object):
     @staticmethod
     def get_cart():
         return Model.cart
+
+    @staticmethod
+    def update_prices(currency : str):
+        for product in Model.products.values():
+            conversion_rate = Model.CONVERSION_RATES[currency]
+            converted_price = float(product["usd_price"][1:]) * conversion_rate
+            product["price"] = Model.SYMBOLS[currency] + str(round(converted_price, 2))
+            Model.currency = currency
 
     @staticmethod
     def add_item_to_cart(data: str):
@@ -103,67 +124,76 @@ class Model(object):
                     return values
 
 
-
 # Defining our Products Page
 class Product(ft.View):
     def __init__(self, page: ft.Page):
-        super(Product, self).__init__(route="/products")
+        super(Product, self).__init__(route="/products", bgcolor = colors.default_color)
         self.page = page
         self.initilize()
 
     # we break the UI compoenents into several functions for better code readability
 
-    # a method to initilize everything
+    # a method to initilize everythong
     def initilize(self):
-        # main row where items appear
+        # this is the main row where items apepar ,,,
         self.products = ft.Row(expand=True, scroll="auto", spacing=30)
         self.create_products()
 
         self.controls = [
             self.display_product_page_header(),
-            ft.Text("Shop", size=32, color="#a0cafd"),
-            ft.Text("We hope you have a good time shopping with us.", size=12),
-            ft.Text(size=60),
-            ft.Text("Browse the Latest Electronics", size=28, color="#ECEFF4"),
+            ft.Text("Shop", size=32, color=colors.text_color, weight=ft.FontWeight.BOLD),
+            ft.Text("We hope you have a good time shopping with us.", size=12, color=colors.text_color),
+            ft.Divider(height=70, color="transparent"),
+            ft.Text("Browse the Latest Electronics", size=28, color=colors.text_color),
             self.products,
             self.display_product_page_footer(),
         ]
 
     def display_product_page_footer(self):
-        return ft.Row([ft.Text("Sparkathon X Shop", size=10, color="#a0cafd")], alignment="center")
+        return ft.Row([ft.Text("Sparkathon X Shop", size=10, color=colors.text_color, italic=True)], alignment="center")
 
     def display_product_page_header(self):
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon("settings", size=18),
+                    ft.Icon("settings", size=18, color=colors.icon_color),
+                    self.create_dropdown(),
                     ft.IconButton(
                         "shopping_cart_outlined",
                         on_click=lambda e: self.page.go("/cart"),
                         icon_size=18,
+                        icon_color=colors.icon_color
                     ),
                 ],
                 alignment="spaceBetween",
             )
         )
-    def display_product_page(self, product_id, img_src):
 
-        product = self.products[product_id]
-        self.page.views.append(
-        ft.View(
-            f"/product_page/{product_id}",
-            controls=[
-            ft.Image(src=img_src, width=200, height=200),
-            ft.Text(product["name"], size=24, weight="bold"),
-            ft.Text(f"Price: {product['price']}"),
-            ft.Text(product["description"]),
-            ft.IconButton(
-            "arrow_back",
-            on_click=lambda _: self.page.go("/"),)
-            ]
-            )
+    def create_dropdown(self):
+        self.dd =  ft.Dropdown(
+            width=100,
+            value=Model.currency,
+            label="Currency",
+            label_style={"color": colors.text_color},
+            options=[
+                ft.dropdown.Option("USD"),
+                ft.dropdown.Option("EUR"),
+                ft.dropdown.Option("INR"),
+            ],
+            bgcolor=colors.panel_color,
+            color=colors.text_color,
+            border_color="transparent",
+            on_change=self.on_dropdown_changed,
+            autofocus=True
         )
+        return self.dd
+
+    def on_dropdown_changed(self, e):
+        Model.update_prices(self.dd.value)
+        self.products.controls.clear()
+        self.create_products()
         self.page.update()
+
     # Define a method that creates the product UI items from the Model
     def create_products(self, products: dict = Model.get_products()):
         # loop over the data and extract the info based on keys
@@ -189,11 +219,11 @@ class Product(ft.View):
             self.create_full_item_view(img_src, product_button, price)
 
     # define a gather method that compiles everything
-    def create_full_item_view(self, img_src, texts, price):
+    def create_full_item_view(self, img_src, button, price):
         item = ft.Column()
 
         item.controls.append(self.create_product_container(4, img_src))
-        item.controls.append(self.create_product_container(4, texts))
+        item.controls.append(self.create_product_container(4, button))
         item.controls.append(self.create_product_container(1, price))
 
         self.products.controls.append(self.create_item_wrapper(item))
@@ -201,26 +231,28 @@ class Product(ft.View):
     # a final wrapper method
     def create_item_wrapper(self, item: ft.Column):
         return ft.Container(
-            width=250, height=450, content=item, padding=8, border_radius=6
+            width=250, height=450, content=item, padding=8, border_radius=6, bgcolor=colors.panel_color
         )
 
-    # define am ethod for the image UI
+    # define am method for the image UI
     def create_product_image(self, img_path: str):
         return ft.Container(
-            image_src=img_path, image_fit="fill", border_radius=6, padding=10
+            image_src=img_path, image_fit="contain", border_radius=6, padding=10
         )
 
-    # define a method for the text UI (name + description)
+    # define a method for the button UI
     def create_product_button(self, name: str, idd : int, description: str):
         product_button =  ft.ElevatedButton(
             text = name,
             data=idd,
-            on_click=self.view_product
+            on_click=self.view_product,
+            bgcolor=colors.default_color,
+            color=colors.text_color
         )
         return ft.Column([product_button, ft.Text(description, size=11)])
 
 
-    # define a method for prie and a add_to_cart button
+    # define a method for price and a add_to_cart button
     def create_product_event(self, price: str, idd: str):
         # we use the idd to keep track of the products being clicked
         return ft.Row(
@@ -229,6 +261,7 @@ class Product(ft.View):
                 ft.IconButton(
                     "add",
                     data=idd,
+                    icon_color="#f8f8f2",
                     on_click=self.add_to_cart,
                 ),
             ],
@@ -242,19 +275,17 @@ class Product(ft.View):
     # before the cart, one final method to add items to the cart
     def add_to_cart(self, e: ft.TapEvent):
         Model.add_item_to_cart(data=e.control.data)
-        print(Model.cart)
 
     def view_product(self, e: ft.TapEvent):
         global selected_product                                                                    #Compulsary if you dont want to lose global dict contents as {}
         selected_product = copy.deepcopy(Model.return_product_details(data=e.control.data))        #Deep Copy static fn's returned dictionary(temporary memory) onto global dict(permanant)
-        print(selected_product)
         self.page.go('/product_page')
 
 
 # Finally, we define our cart class
 class Cart(ft.View):
     def __init__(self, page: ft.Page):
-        super(Cart, self).__init__(route="/cart")
+        super(Cart, self).__init__(route="/cart", bgcolor = colors.default_color)
         self.page = page
         self.initilize()
 
@@ -272,12 +303,13 @@ class Cart(ft.View):
                         "arrow_back_ios_new_outlined",
                         on_click=lambda e: self.page.go("/products"),
                         icon_size=16,
+                        icon_color=colors.icon_color
                     )
                 ],
                 alignment="spaceBetween",
             ),
-            ft.Text("Cart", size=32),
-            ft.Text("Your cart items"),
+            ft.Text("Cart", size=32, weight = ft.FontWeight.BOLD, color=colors.text_color),
+            ft.Text("Your cart items", color=colors.text_color),
             self.cart_items,
         ]
 
@@ -291,7 +323,7 @@ class Cart(ft.View):
                 elif key == "name":
                     name = self.create_item_name(values["name"])
                 elif key == "price":
-                    price = self.create_item_price(values["price"])
+                    price = self.create_item_price(values["usd_price"], values["quantity"])
 
             self.compile_cart_item(img_src, quantity, name, price)
 
@@ -319,31 +351,63 @@ class Cart(ft.View):
         )
 
     def create_item_image(self, img_path):
-        return ft.Container(width=32, height=32, image_src=img_path, bgcolor="teal")
+        return ft.Container(width=32, height=32, image_src=img_path, bgcolor=colors.default_color)
 
     def create_item_quantity(self, quantity: int):
-        return ft.Text(f"{quantity} X")
+        return ft.Text(f"{quantity} X", color=colors.text_color)
 
     def create_item_name(self, name: str):
-        return ft.Text(name, size=16)
+        return ft.Text(name, size=16, color=colors.text_color)
 
-    def create_item_price(self, price: str):
-        return ft.Text(price)
-
+    def create_item_price(self, price: str, quantity: int):
+        total_price = "$" + str(float(price[1:]) * quantity)
+        return ft.Text(total_price, color=colors.text_color)
 
 
 class ProductPage(ft.View):
     def __init__(self, page: ft.Page):
-        super(ProductPage, self).__init__(route="/product_page")
+        super(ProductPage, self).__init__(route="/product_page", bgcolor = colors.default_color)
         self.page = page
-        self.page.bgcolor = "pink600"
         page.add()
         self.initilize()
 
 
+    def initilize(self):
+        self.loading_icon = ft.Column(alignment = ft.MainAxisAlignment.CENTER, horizontal_alignment = ft.CrossAxisAlignment.CENTER)
+
+        self.controls = [
+            self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
+            ft.Text(selected_product["name"], size=24, weight="bold", color=colors.text_color),
+            ft.Divider(height=25, color="transparent"),
+            ft.Text("Price: " + selected_product['price'], color=colors.text_color),
+            ft.Divider(height=25, color="transparent"),
+            ft.Text(selected_product["description"], color=colors.text_color),
+            ft.Divider(height=25, color="transparent"),
+            ft.Image(src=selected_product['img_src'], width=200, height=200),
+        ]
+
+    def create_productpage_buttons(self, name: str, idd: int, description : str):
+        return ft.Container(
+            content= ft.Row(
+                [
+                    ft.IconButton(
+                    "arrow_back_ios_new_outlined",
+                    icon_color = colors.icon_color,
+                    on_click=lambda _: self.page.go("/products"),),
+
+                    ft.ElevatedButton(
+                        text = name,
+                        data = idd,
+                        bgcolor=colors.panel_color,
+                        color=colors.text_color,
+                        on_click= self.display_map)
+                ],
+                alignment="spaceBetween",
+            )
+        )
+
     def display_map(self, e: ft.TapEvent):
-        # self.page.views.clear()
-        s_file = open("settings.py","w")
+        s_file = open("target_position.py","w")
         s_file.write(f'''position = {selected_product["pos"]} ''')
         s_file.close()
 
@@ -351,8 +415,8 @@ class ProductPage(ft.View):
         for widget in self.controls:
             old_controls.append(widget)
         self.controls.clear()
-        pr = ft.ProgressRing(width = 50, height = 50, stroke_width = 2, visible = True)
-        text = ft.Text("Buckle your seatbelts...", size = 20)
+        pr = ft.ProgressRing(width = 50, height = 50, stroke_width = 2, visible = True, color=colors.icon_color)
+        text = ft.Text("Buckle your seatbelts...", size = 20, color=colors.text_color)
         self.loading_icon.controls.append(pr)
         self.loading_icon.controls.append(text)
         row = ft.Row(
@@ -371,55 +435,19 @@ class ProductPage(ft.View):
             sleep(0.1)
             self.page.update()
 
-        subprocess.Popen(["python", "map_demo.py"])
+        subprocess.Popen(["python", "interactive_map.py"])
+        self.loading_icon.controls.clear()
         self.controls.clear()
+        pr.value = 0
+
         for widget in old_controls:
             self.controls.append(widget)
-        self.page.update()
-
-
-    def create_productpage_buttons(self, name: str, idd: int, description : str):
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.IconButton(
-                    "arrow_back",
-                    on_click=lambda _: self.page.go("/products"),),
-
-                    ft.ElevatedButton(
-                        text = name,
-                        data = idd,
-                        on_click= self.display_map)
-                ],
-                alignment="spaceBetween",
-            )
-        )
-
-    def initilize(self):
-        self.products = ft.Row(expand=True, scroll="auto", spacing=30)
-        self.loading_icon = ft.Column(alignment = ft.MainAxisAlignment.CENTER, horizontal_alignment = ft.CrossAxisAlignment.CENTER)
-
-        self.controls = [
-
-            # row,
-            self.create_productpage_buttons("Find My Location", 4, "if you wanna make your enemies suffer excrutiating pain, suggest them flet!"),
-
-            ft.Text(selected_product["name"], size=24, weight="bold"),
-            ft.Divider(height=25, color="transparent"),
-            ft.Text("Price: " + selected_product['price']),
-            ft.Divider(height=25, color="transparent"),
-            ft.Text(selected_product["description"]),
-            ft.Divider(height=25, color="transparent"),
-            ft.Image(src=selected_product['img_src'], width=200, height=200),
-        ]
-
-        self.page.update()
+            self.page.update()
 
 
 def main(page: ft.Page):
     page.window.height = 800
     page.window.width = 500
-    page.bgcolor = "pink600"
     page.fonts = {
         "Inter": "https://rsms.me/inter/inter.css",
     }
@@ -432,14 +460,15 @@ def main(page: ft.Page):
             landing = Landing(page)
             page.views.append(landing)
 
-        if page.route == "/products":
+        elif page.route == "/products":
             products = Product(page)
             page.views.append(products)
 
-        if page.route == "/cart":
+        elif page.route == "/cart":
             cart = Cart(page)
             page.views.append(cart)
-        if page.route == "/product_page":
+
+        elif page.route == "/product_page":
             product_page = ProductPage(page)
             page.views.append(product_page)
 
