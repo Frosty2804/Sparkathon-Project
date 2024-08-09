@@ -11,6 +11,17 @@ import os
 import shutil
 import requests
 
+# API Work
+from dotenv import load_dotenv
+load_dotenv()
+CC_API_KEY = os.getenv('CURRENCY_CONV_API')
+
+url = f"https://api.freecurrencyapi.com/v1/latest?apikey={CC_API_KEY}&currencies=EUR%2CUSD%2CINR"
+
+resp = requests.get(url)
+curr_api_data = resp.json()
+###
+
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
@@ -54,11 +65,7 @@ class Landing(ft.View):
 
 # Define your model class => class that stores your data
 class Model(object):
-    CONVERSION_RATES = {
-        "USD": 1.0,
-        "EUR": 0.85,
-        "INR": 82.50
-    }
+    CONVERSION_RATES = curr_api_data["data"]
     SYMBOLS = {
         "USD": "$",
         "EUR": "€",
