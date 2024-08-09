@@ -78,7 +78,7 @@ class Model(object):
         0: {
             "id": "111",
             "img_src": "assets/xbox.png",
-            "name": "Fridge",
+            "name": "Xbox Series X",
             "description": "Experience the excellence of Product 1, a cutting-edge creation designed to elevate your daily routine. Crafted with precision and innovation, this product offers unmatched quality and performance. Enhance your lifestyle with Product 1 today.",
             "price": "$25.99",
             "usd_price": "$25.99",
@@ -87,7 +87,7 @@ class Model(object):
         1: {
             "id": "222",
             "img_src": "assets/mac.png",
-            "name": "Overpriced Laptop",
+            "name": "Macbook Air",
             "description": "Immerse yourself in the sophistication of Product 2. Uniquely crafted to meet your needs, this product combines style and functionality seamlessly. Elevate your daily experiences with the exceptional features of Product 2.",
             "price": "$45.99",
             "usd_price": "$45.99",
